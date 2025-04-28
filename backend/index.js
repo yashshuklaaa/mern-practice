@@ -42,6 +42,14 @@ app.delete('/delete/:id', (req, res) => {
         .catch(err => res.json(err));
 })
 
+app.put('/edit/:id', (req, res) => {
+    const { id } = req.params;
+    const { task } = req.body;
+    TodoModel.findByIdAndUpdate(id, { task }, { new: true })  // { new: true } ensures the updated document is returned
+        .then(result => res.json(result))
+        .catch(err => res.json(err));
+});
+
 app.post('/add', (req, res) => {
     const task = req.body.task;
     TodoModel.create({ task })

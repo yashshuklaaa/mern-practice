@@ -1,18 +1,42 @@
-import react, { useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
-function Create() {
+function Create({ editingTask, setEditingTask, refreshData }) {
     const [task, setTask] = useState("");
 
-    const handleAdd = () => {
+    // If you are editing, pre-fill the input
+    React.useEffect(() => {
+        if (editingTask) {
+            setTask(editingTask.task);
+        }
+    }, [editingTask]);
+
+    const handleAddOrUpdate = () => {
         if (!task) {
             console.log("Task cannot be empty");
             return;
         }
 
-        axios.post('http://localhost:3001/add', { task })
-            .then(result => { location.reload() })
-            .catch(err => console.log(err));
+        if (editingTask) {
+            // If editing, update the task
+            axios.put(`http://localhost:3001/edit/${editingTask._id}`, { task })
+                .then(result => {
+                    console.log("Task updated");
+                    setEditingTask(null);
+                    setTask("");
+                    refreshData();
+                })
+                .catch(err => console.log(err));
+        } else {
+            // If creating new task
+            axios.post('http://localhost:3001/add', { task })
+                .then(result => {
+                    console.log("Task added");
+                    setTask("");
+                    refreshData();
+                })
+                .catch(err => console.log(err));
+        }
     };
 
     return (
@@ -20,13 +44,14 @@ function Create() {
             <input
                 type="text"
                 placeholder="Enter something..."
+                value={task}
                 onChange={(e) => setTask(e.target.value)}
                 className="border border-gray-300 rounded p-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            <button onClick={handleAdd}
+            <button onClick={handleAddOrUpdate}
                 className="bg-blue-500 text-white p-4 rounded hover:bg-blue-600 transition"
             >
-                Add
+                {editingTask ? "Update" : "Add"}
             </button>
         </div>
     );
